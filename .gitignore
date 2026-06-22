@@ -1,0 +1,14 @@
+# Caches de Python
+*.pyc
+
+# Archivos del sistema y editores
+.DS_Store
+.idea/
+.vscode/
+
+# Entornos virtuales
+.venv/
+
+# Archivos de configuración local con contraseñas reales
+.env
+local_settings.py

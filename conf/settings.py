@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import mongoengine
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -64,16 +66,23 @@ WSGI_APPLICATION = "conf.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
+        "ENGINE": "django.db.backends.dummy",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
 
 MONGO_SETTINGS = {
     "HOST": "localhost",
     "PORT": 27017,
     "DB_NAME": "incidentes_db",
 }
+
+mongoengine.connect(
+    db=MONGO_SETTINGS["DB_NAME"],
+    host=MONGO_SETTINGS["HOST"],
+    port=MONGO_SETTINGS["PORT"],
+)
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -97,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es-cl"
 
 TIME_ZONE = "UTC"
 
@@ -110,3 +119,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
