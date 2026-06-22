@@ -10,6 +10,7 @@ __pycache__/
 # Entornos virtuales
 .venv/
 
-# Archivos de configuración local con contraseñas reales
+# Carpetas y archivos de configuración local
+.vscode/
 .env
 local_settings.py
