@@ -1,5 +1,6 @@
 # Caches de Python
 *.pyc
+__pycache__/
 
 # Archivos del sistema y editores
 .DS_Store
