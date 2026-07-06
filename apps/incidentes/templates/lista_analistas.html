@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<a href="{% url 'crear_analista' %}">Ingresar Analista</a>
+<br>
+<h2>Lista de Analistas</h2>
+<ul>
+    {% for analista in analistas %}
+    <li>
+        <strong><a href="{%url 'detalle_analista' analista.id%}">{{ analista.nombre }}</a></strong>
+        <div class="meta-tags">
+            <span class="tag">Rol: {{analista.rol.capitalize}}</span>
+        </div>
+        {% if user.is_staff %}
+        - <a href="{%url 'editar_analista' analista.id%}">Editar</a>
+        - <a href="{%url 'eliminar_analista' analista.id%}">Eliminar</a>
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>
+        No hay analistas registrados aún.
+    </li>
+    {% endfor %}
+</ul>
+
+
+{% endblock %}

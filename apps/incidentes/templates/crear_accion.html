@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Ingreso de Acciones</h2>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="titulo">Titulo de la Acción:</label>
+    <input type="text" name="titulo" id="titulo" required>
+    <label for="descripcion">Detalle de la Acción:</label>
+    <input type="text" name="descripcion" id="descripcion" required>
+    <label for="tipo">Tipo:</label>
+    <select name="tipo" id="tipo" required>
+        <option value="" disabled selected>Seleccione un tipo</option>
+        {%for t in tipos_accion%}
+        <option value="{{t}}">{{t|capfirst}}</option>
+        {% endfor %}
+    </select>
+    <label for="fecha">Fecha y Hora:</label>
+    <input type="datetime-local" name="fecha" id="fecha" value="{{hoy}}" required>
+    <label for="incidente">Incidente:</label>
+    <select name="incidente" id="incidente" required>
+        <option value="" disabled selected>Seleccione un incidente</option>
+        {% for i in incidentes%}
+        <option value="{{i.id}}">[{{i.severidad|upper}}] - {{i.titulo}} </option>
+        {% endfor %}
+    </select>
+    <label for="analista">Analista Asignado:</label>
+    <select name="analista" id="analista" required>
+        <option value="" disabled selected>Seleccione un analista</option>
+        {% for a in analistas%}
+        <option value="{{a.id}}">{{a.rol|upper}} [{{a.especialidad|capfirst}}] - {{a.nombre}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Registrar Acción">
+    <a href="{% url 'lista_acciones' %}">Cancelar</a>
+</form>
+
+{% endblock %}

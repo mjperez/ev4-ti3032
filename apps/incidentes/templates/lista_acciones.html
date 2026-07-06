@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<a href="{%url 'crear_accion' %}">Registrar Accion</a>
+<br>
+<h2>Lista de Acciones</h2>
+<ul>
+    {% for accion in acciones %}
+    <li>
+        <strong><a href="{% url 'detalle_accion' accion.id %}">{{accion.titulo|capfirst}}</a></strong>
+        <a href="{% url 'detalle_incidente' accion.incidente.id %}">Incidente: {{accion.incidente.titulo|capfirst}}</a>
+        <div class="meta-tags">
+            <span class="tag">Tipo: {{accion.tipo|capfirst}}</span>
+            <span class="tag">Fecha: {{accion.fecha|date:"d/m/Y H:i"}}</span>
+        </div>
+    </li>
+    {% empty %}
+    <li>
+        No hay acciones registradas aún.
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

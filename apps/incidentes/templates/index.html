@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Dashboard Principal de Incidentes</h2>
+<h3>Recursos:</h3>
+<a href="analistas/">Analistas</a> |
+<a href="activos/">Activos</a> |
+<a href="incidentes/">Incidentes</a> |
+<a href="acciones/">Acciones</a>
+<br><br>
+<h2>Estadísticas:</h2>
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">Incidentes registrados</span>
+        <span class="detail-value">{{total_incidentes}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label"><a href="{% url 'lista_incidentes' %}?estado=abierto">Incidentes abiertos</a></span>
+        <span class="detail-value">{{incidentes_abiertos}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label"><a href="{% url 'lista_activos' %}">Activos registrados</a></span>
+        <span class="detail-value">{{total_activos}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label"><a href="{% url 'lista_analistas' %}">Analistas registrados</a></span>
+        <span class="detail-value">{{total_analistas}}</span>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Lista de Activos</h2>
+<ul>
+    {% for activo in activos %}
+    <li>
+        <strong><a href="{%url 'detalle_activo' activo.id%}">{{activo.nombre}}</a></strong>
+        <div class="meta-tags">
+            <span class="tag">Tipo: {{activo.tipo|capfirst}}</span>
+        </div>
+        {% if user.is_staff %}
+        - <a href="{%url 'editar_activo' activo.id%}">Editar</a>
+        - <a href="{%url 'eliminar_activo' activo.id%}">Eliminar</a>
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>
+        No hay activos registrados aún.
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

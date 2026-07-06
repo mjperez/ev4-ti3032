@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Edición de Incidente: {{incidente.titulo|capfirst}}</h2>
+
+<form action="POST">
+    {% csrf_token %}
+    <label for="titulo">Titulo:</label>
+    <input type="text" name="titulo" id="titulo" value="{{incidente.titulo}}" required>
+    <label for="severidad">Severidad:</label>
+    <select name="severidad" id="severidad" required>
+        {% for s in severidades%}
+        <option value="{{s}}" {% if s==incidente.severidad %} selected {% endif %}>{{s|capfirst}}</option>
+        {% endfor %}
+    </select>
+    <label for="estado">Estado:</label>
+    <select name="estado" id="estado" required>
+        {% for e in estados %}
+        <option value="{{e}}" {% if e==incidente.estado %} selected {% endif %}>{{e|capfirst}}</option>
+        {% endfor %}
+    </select>
+    <label for="fecha">Fecha de Reporte:</label>
+    <input type="datetime-local" name="fecha" id="fecha" value="{{ incidente.fecha_reporte|date:'d-m-Y\TH:i' }}"
+        required>
+    <label for="activo">Activo:</label>
+    <select name="activo" id="activo">
+        {% for a in activos %}
+        <option value="{{a.id}}" {% if a==incidente.activo %} selected {% endif %}>{{a.titulo}}</option>
+        {% endfor %}
+    </select>
+    <label for="analista_asignado">Analista Asignado:</label>
+    <select name="analista_asignado" id="analista_asignado">
+        <option value="">Sin Analista</option>
+        {% for a in analistas %}
+        <option value="{{a.id}}" {% if a==incidente.analista_asignado %} selected {% endif %}>{{a.rol|upper}}
+            [{{a.especialidad|capfirst}}] - {{a.nombre}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Actualizar Incidente">
+    <a href="">Cancelar</a>
+</form>
+{% endblock %}
