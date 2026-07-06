@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
-
+from dotenv import load_dotenv
 import mongoengine
+
+# Carga las variables de entorno del archivo .env
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,15 +76,20 @@ DATABASES = {
 
 
 MONGO_SETTINGS = {
-    "HOST": "localhost",
-    "PORT": 27017,
-    "DB_NAME": "incidentes_db",
+    "HOST": os.environ.get("MONGO_HOST"),
+    "PORT": int(os.environ.get("MONGO_PORT", 27017)),
+    "DB_NAME": os.environ.get("MONGO_DB_NAME"),
+    "USER": os.environ.get("MONGO_USER", "admin"),
+    "PASSWORD": os.environ.get("MONGO_PASS", ""),
 }
 
 mongoengine.connect(
     db=MONGO_SETTINGS["DB_NAME"],
     host=MONGO_SETTINGS["HOST"],
     port=MONGO_SETTINGS["PORT"],
+    username=MONGO_SETTINGS["USER"],
+    password=MONGO_SETTINGS["PASSWORD"],
+    authentication_source=MONGO_SETTINGS["DB_NAME"],
 )
 
 # Password validation

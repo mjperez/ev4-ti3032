@@ -9,8 +9,10 @@ __pycache__/
 
 # Entornos virtuales
 .venv/
+venv/
 
 # Carpetas y archivos de configuración local
-.vscode/
 .env
 local_settings.py
+*.sqlite3
+*.db
