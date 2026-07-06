@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Incidentes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'custom.css' %}">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <h1><a href="/">Sistema de Gestión de Incidentes</a></h1>
+        </div>
+    </header>
+    <main class="container">
+        <div class="glass-panel">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+
+            {% if request.resolver_match.url_name != 'index' %}
+            <div class="back-link">
+                <a href="{% url 'index' %}">⬅ Volver al menú principal</a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+
+</html>

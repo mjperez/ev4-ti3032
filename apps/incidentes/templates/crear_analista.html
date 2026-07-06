@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Ingreso de Analista</h2>
+<form action="" method="post">
+    <!-- Protección CSRF contra Falsificación de Peticiones entre Sitios -->
+    {% csrf_token %}
+    <label for="nombre">Nombre:</label>
+    <input type="text" name="nombre" id="nombre" required>
+    <label for="email">Correo:</label>
+    <input type="text" name="email" id="email" required>
+    <label for="rol">Rol:</label>
+    <select name="rol" id="rol" required>
+        <option value="" disabled selected>Seleccione un rol</option>
+        {% for r in roles%}
+        <option value="{{r}}">{{r|capfirst}}</option>
+        {% endfor%}
+    </select>
+    <label for="telefono">Telefono:</label>
+    <input type="text" name="telefono" id="telefono" required>
+    <label for="horario">Horario:</label>
+    <input type="text" name="horario" id="horario" required>
+    <label for="especialidad">Especialidad:</label>
+    <select name="especialidad" id="especialidad" required>
+        <option value="" disabled selected>Seleccione una especialidad</option>
+        {% for e in especialidades%}
+        <option value="{{e}}">{{e|capfirst}}</option>
+        {% endfor%}
+    </select>
+    <input type="submit" value="Registrar Analista">
+    <a href="{% url 'lista_analistas' %}">Cancelar</a>
+</form>
+<br>
+
+{% endblock %}

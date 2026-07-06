@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Eliminar Incidente</h2>
+<div class="detail-item">
+    <span class="detail-label">Título</span>
+    <span class="detail-value">{{incidente.titulo|capfirst}}</span>
+</div>
+<br>
+<strong style="color: #ef4444; font-size: 1rem; font-weight: bold; text-transform: uppercase">Esta acción no se puede
+    deshacer.</strong>
+<br>
+<br>
+<form method="POST">
+    {% csrf_token %}
+    ¿Está seguro de que desea eliminar el incidente?
+    <input type="submit" value="Sí, eliminar incidente definitivamente" class="btn btn-danger">
+    <a class="btn btn-secondary" href="{% url 'detalle_incidente' incidente.id %}">Cancelar</a>
+</form>
+
+{% endblock %}

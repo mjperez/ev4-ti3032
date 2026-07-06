@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Ingreso de Activo</h2>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="nombre">Detalle del Activo:</label>
+    <input type="text" name="nombre" id="nombre" required>
+    <label for="tipo">Tipo:</label>
+    <select name="tipo" id="tipo" required>
+        <option value="" disabled selected>Seleccione un tipo</option>
+        {% for tipo in TIPOS_ACTIVO %}
+        <option value="{{tipo}}">{{tipo}}</option>
+        {% endfor %}
+    </select>
+    <label for="ip_address">Direccion IP:</label>
+    <input type="text" name="ip_address" id="ip_address" required>
+    <input type="submit" value="Registrar Activo">
+    <a href="{% url 'lista_activos' %}">Cancelar</a>
+</form>
+
+{% endblock %}

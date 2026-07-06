@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Incidente: {{incidente.titulo}}</h2>
+
+<div class="button-group">
+    <a href="{%url 'editar_incidente' incidente.id%}" class="btn btn-primary">Editar Incidente</a>
+    <a href="{%url 'eliminar_incidente' incidente.id%}" class="btn btn-danger">Eliminar Incidente</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">Severidad</span>
+        <span class="detail-value">{{incidente.severidad|upper}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Estado</span>
+        <span class="detail-value">{{incidente.estado|capfirst}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Activo Afectado</span>
+        <span class="detail-value">
+            {% if incidente.activo %}
+            <a href="{%url 'detalle_activo' incidente.activo.id%}">{{incidente.activo.nombre}}</a>
+            {% else %}
+            No asignado
+            {% endif %}
+        </span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Analista Asignado</span>
+        <span class="detail-value">
+            {% if incidente.analista_asignado %}
+            <a
+                href="{%url 'detalle_analista' incidente.analista_asignado.id%}">{{incidente.analista_asignado.nombre}}</a>
+            {% else %}
+            No asignado
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+<h3>Evidencias Adjuntas</h3>
+{% if incidente.evidencias %}
+<ul>
+    {% for evidencia in incidente.evidencias %}
+    <li>
+        <strong>[{{evidencia.tipo|upper}}]</strong> {{evidencia.descripcion}}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p style="color: var(--text-muted); margin-bottom: 2rem;">No hay evidencias adjuntas a este incidente.</p>
+{% endif %}
+
+<div class="back-link">
+    <a href="{% url 'lista_incidentes' %}" class="btn btn-secondary">⬅ Volver a la lista de incidentes</a>
+</div>
+
+{% endblock %}

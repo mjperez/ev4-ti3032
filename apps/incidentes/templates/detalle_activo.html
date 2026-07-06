@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Activo: {{activo.nombre}}</h2>
+
+<div class="button-group">
+    <a href="{%url 'editar_activo' activo.id%}" class="btn btn-primary">Editar Activo</a>
+    <a href="{%url 'eliminar_activo' activo.id%}" class="btn btn-danger">Eliminar Activo</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">Tipo</span>
+        <span class="detail-value">{{activo.tipo|capfirst}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">IP</span>
+        <span class="detail-value">{{activo.ip_address}}</span>
+    </div>
+</div>
+
+<div class="detail-item" style="margin-bottom: 2rem;">
+    <span class="detail-label">Descripción</span>
+    <span class="detail-value">{{activo.descripcion}}</span>
+</div>
+
+<div class="back-link">
+    <a href="{% url 'lista_activos' %}" class="btn btn-secondary">⬅ Volver a la lista de activos</a>
+</div>
+
+{% endblock %}

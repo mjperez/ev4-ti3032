@@ -33,13 +33,11 @@ from mongoengine import (
     StringField,
 )
 
-
-# ---------------------------------------------------------------------------
-# Constantes de choices reutilizables
-# ---------------------------------------------------------------------------
-
 ROLES_ANALISTA = ["junior", "senior", "lead"]
 """Roles válidos para un analista de seguridad."""
+
+ESPECIALIDADES_ANALISTA = ["forensic","malware","network","cloud","endpoint","incident response"]
+"""Especialidades válidas para un analista de seguridad."""
 
 TIPOS_ACTIVO = ["servidor", "endpoint", "red"]
 """Tipos de activos informáticos registrables."""
@@ -50,7 +48,7 @@ TIPOS_EVIDENCIA = ["log", "hash", "captura"]
 NIVELES_SEVERIDAD = ["baja", "media", "alta", "critica"]
 """Niveles de severidad de un incidente."""
 
-ESTADOS_INCIDENTE = ["abierto", "en_investigacion", "cerrado"]
+ESTADOS_INCIDENTE = ["abierto", "en investigacion", "cerrado"]
 """Estados del ciclo de vida de un incidente."""
 
 TIPOS_ACCION = ["mitigacion", "analisis", "escalamiento"]
@@ -115,6 +113,9 @@ class Analista(Document):
         nombre: Nombre completo del analista.
         email: Correo electrónico institucional (único).
         rol: Nivel jerárquico del analista (junior, senior o lead).
+        telefono: Número de teléfono del analista.
+        horario: Horario de trabajo del analista.
+        especialidad: Especialidad del analista.
 
     Indexes:
         - ``email`` (único): evita duplicados y optimiza búsquedas.
@@ -124,7 +125,10 @@ class Analista(Document):
         >>> analista = Analista(
         ...     nombre="María López",
         ...     email="mlopez@empresa.cl",
-        ...     rol="senior"
+        ...     rol="senior",
+        ...     telefono="+123456789",
+        ...     horario="8:00 - 17:00",
+        ...     especialidad="malware"
         ... )
         >>> analista.save()
     """
@@ -143,6 +147,21 @@ class Analista(Document):
         choices=ROLES_ANALISTA,
         required=True,
         help_text="Nivel jerárquico: junior, senior o lead.",
+    )
+    especialidad = StringField(
+        choices=ESPECIALIDADES_ANALISTA,
+        required=True,
+        help_text="Especialidad del analista, ej: malware, forensic.",
+    )
+    telefono = StringField(
+        required=True,
+        max_length=15,
+        help_text="Número de teléfono del analista.",
+    )
+    horario = StringField(
+        required=True,
+        max_length=15,
+        help_text="Horario de trabajo del analista.",
     )
 
     meta = {
@@ -291,7 +310,6 @@ class Incidente(Document):
     )
     analista_asignado = ReferenceField(
         Analista,
-        required=True,
         help_text="Analista responsable de la investigación.",
     )
     evidencias = ListField(
@@ -354,6 +372,10 @@ class Accion(Document):
         Analista,
         required=True,
         help_text="Analista que ejecutó la acción.",
+    )
+    titulo = StringField(
+        required=True,
+        help_text="Titulo de la acción.",
     )
     descripcion = StringField(
         required=True,

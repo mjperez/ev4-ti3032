@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Acción: {{accion.titulo}}</h2>
+
+<div class="button-group">
+    <a href="{%url 'editar_accion' accion.id%}" class="btn btn-primary">Editar Acción</a>
+    <a href="{%url 'eliminar_accion' accion.id%}" class="btn btn-danger">Eliminar Acción</a>
+</div>
+
+<div class="detail-item" style="margin-bottom: 2rem;">
+    <span class="detail-label">Descripción Detallada</span>
+    <span class="detail-value">{{accion.descripcion}}</span>
+</div>
+
+<div class="detail-grid">
+
+    <div class="detail-item">
+        <span class="detail-label">Incidente</span>
+        <span class="detail-value">
+            <a href="{%url 'detalle_incidente' accion.incidente.id%}">{{accion.incidente.titulo}}</a>
+        </span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Tipo</span>
+        <span class="detail-value">{{accion.tipo|capfirst}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Fecha</span>
+        <span class="detail-value">{{accion.fecha|date:"d/m/Y H:i"}}</span>
+    </div>
+
+    <div class="detail-item">
+        <span class="detail-label">Analista</span>
+        <span class="detail-value">
+            <a href="{%url 'detalle_analista' accion.analista.id%}">{{accion.analista.nombre}}</a>
+        </span>
+    </div>
+</div>
+
+
+
+<div class="back-link">
+    <a href="{% url 'lista_acciones' %}" class="btn btn-secondary">⬅ Volver a la lista de acciones</a>
+</div>
+
+{% endblock %}
