@@ -16,9 +16,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-hx(_j@_4&^27t3s(*ud0l-@fqm_bmk1crg!i&+)*+0q#kka#6u"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '.onrender.com', '.railway.app']
 
 
 # Application definition
