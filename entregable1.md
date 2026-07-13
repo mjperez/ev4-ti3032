@@ -9,18 +9,29 @@ manual, mediante plantillas Excel compartidas por correo electrónico.
 Esto genera problemas de trazabilidad, pérdida de información y 
 dificultad en la asignación de analistas.
 
+### Técnica de Levantamiento
+Para el levantamiento de información se utilizó la técnica de entrevista simulada con el cliente (Product Owner). Esta técnica se seleccionó porque permite explorar a fondo los procesos manuales actuales y entender los dolores del negocio desde la perspectiva de los usuarios finales, generando una base sólida para definir requerimientos ajustados a su realidad operativa.
+
 ### Problemas Identificados
 - No existe un registro centralizado de incidentes.
 - Las evidencias se pierden o quedan dispersas.
 - No hay seguimiento formal de las acciones tomadas por cada analista.
 - No se generan reportes de cierre estandarizados.
 
+### Actores Identificados
+- **Analista de Seguridad:** Usuario encargado de registrar incidentes, agregar evidencias y generar reportes.
+- **Product Owner (Cliente):** Revisa y valida la gestión de incidentes y reportería.
+
+### Supuestos y Restricciones del Negocio
+- **Supuesto:** El cliente cuenta con servidores en un entorno local donde podrá alojarse la base de datos (MongoDB).
+- **Restricción:** El sistema no debe estar expuesto a internet público debido a la sensibilidad de las evidencias manejadas.
+
 ### Necesidades Identificadas
-- Registrar y clasificar incidentes de seguridad por severidad y estado.
-- Asociar cada incidente a un activo afectado y a un analista responsable.
-- Almacenar evidencias para cada incidente.
-- Registrar acciones de mitigación para cada incidente.
-- Emitir un reporte de cierre al resolver el incidente.
+- **N01:** Registrar y clasificar incidentes de seguridad por severidad y estado.
+- **N02:** Asociar cada incidente a un activo afectado y a un analista responsable.
+- **N03:** Almacenar evidencias de distintos tipos y formatos para cada incidente.
+- **N04:** Registrar acciones de mitigación para cada incidente.
+- **N05:** Emitir un reporte de cierre al resolver el incidente.
 
 ### Volúmenes de Datos Actuales y Proyectados
 
@@ -36,8 +47,7 @@ operación en Santiago), se estiman los siguientes volúmenes:
 | Activos registrados | ~20 activos iniciales | ~50 activos | ~80 activos |
 
 **Conclusión de volumen:** El volumen total proyectado a 24 meses no 
-supera los 500 MB en MongoDB, considerando documentos embebidos de 
-evidencias en formato texto y hashes. Este volumen es manejable en 
+supera los 500 MB en MongoDB. Este volumen es manejable en 
 una instancia local de MongoDB Community Server sin requerir 
 estrategias de sharding ni réplicas en la fase inicial.
 
@@ -47,35 +57,41 @@ estrategias de sharding ni réplicas en la fase inicial.
 
 ### Requerimientos Funcionales
 
-| Requerimiento | Descripción |
-| --- | --- |
-| RF01 | Registrar un analista con nombre, email y rol. |
-| RF02 | Listar todos los analistas registrados. |
-| RF03 | Registrar un activo (sistema o dispositivo afectado) con nombre, tipo, dirección IP y descripción. |
-| RF04 | Listar todos los activos registrados. |
-| RF05 | Crear un incidente asociado a un activo y un analista responsable. |
-| RF06 | Agregar evidencias a un incidente. |
-| RF07 | Listar incidentes con posibilidad de filtrar por riesgo o estado. |
-| RF08 | Listar el detalle de un incidente. |
-| RF09 | Registrar una acción tomada sobre un incidente, indicando tipo y analista responsable. |
-| RF10 | Listar las acciones asociadas a un incidente específico. |
-| RF11 | Generar un reporte de cierre para un incidente cerrado. |
-| RF12 | Consultar el reporte asociado a un incidente. |
+| Requerimiento | Descripción | Prioridad | Origen |
+| --- | --- | --- | --- |
+| RF01 | Registrar un analista con nombre, email y rol. | Alta | N02 |
+| RF02 | Listar todos los analistas registrados. | Alta | N02 |
+| RF03 | Registrar un activo (sistema o dispositivo afectado) con nombre, tipo, dirección IP y descripción. | Alta | N02 |
+| RF04 | Listar todos los activos registrados. | Alta | N02 |
+| RF05 | Crear un incidente asociado a un activo y un analista responsable. | Alta | N01, N02 |
+| RF06 | Agregar evidencias a un incidente. | Alta | N03 |
+| RF07 | Listar incidentes con posibilidad de filtrar por riesgo o estado. | Media | N01 |
+| RF08 | Listar el detalle de un incidente. | Alta | N01 |
+| RF09 | Registrar una acción tomada sobre un incidente, indicando tipo y analista responsable. | Alta | N04 |
+| RF10 | Listar las acciones asociadas a un incidente específico. | Media | N04 |
+| RF11 | Generar un reporte de cierre para un incidente cerrado. | Media | N05 |
+| RF12 | Consultar el reporte asociado a un incidente. | Baja | N05 |
 
 ### Requerimientos No Funcionales
 
-| Requerimiento | Descripción |
-| --- | --- |
-| RNF01 | La base de datos debe ser MongoDB, ejecutándose localmente. |
-| RNF02 | El framework backend debe ser Django 6.0.6 |
-| RNF03 | Las vistas serán function-based views con templates HTML simples.|
-| RNF04 | El proyecto debe incluir un script de datos de prueba ejecutable desde la shell de Django. |
-| RNF05 | El sistema no implementará autenticación de sesiones complejas. El despliegue se acota a infraestructura local de desarrollo. |
-| RNF06 | El sistema debe responder en menos de 2 segundos ante consultas de listado de incidentes bajo carga normal (hasta 10 usuarios concurrentes). |
-| RNF07 | La disponibilidad esperada es del 95% en horario hábil (lunes a viernes, 9:00–18:00 hrs). |
-| RNF08 | Los datos almacenados no deben exponerse a redes públicas. MongoDB debe escuchar exclusivamente en la interfaz local (127.0.0.1).|
-| RNF09 | El acceso a MongoDB debe requerir autenticación con usuario y contraseña configurados durante la instalación. |
-| RNF10 | El sistema debe registrar en logs las operaciones de escritura sobre incidentes para mantener trazabilidad de auditoría. |
+| Requerimiento | Descripción | Prioridad |
+| --- | --- | --- |
+| RNF01 | La base de datos debe ser MongoDB, ejecutándose localmente. | Alta |
+| RNF02 | El framework backend debe ser Django 6.0.6. | Alta |
+| RNF03 | Las vistas serán function-based views con templates HTML simples. | Baja |
+| RNF04 | El proyecto debe incluir un script de datos de prueba ejecutable desde la shell de Django. | Media |
+| RNF05 | El sistema no implementará autenticación de sesiones complejas. El despliegue se acota a infraestructura local de desarrollo. | Media |
+| RNF06 | El sistema debe responder en menos de 2 segundos ante consultas de listado de incidentes bajo carga normal. | Alta |
+| RNF07 | La disponibilidad esperada es del 95% en horario hábil (lunes a viernes, 9:00–18:00 hrs). | Media |
+| RNF08 | Los datos almacenados no deben exponerse a redes públicas. MongoDB debe escuchar exclusivamente en la interfaz local. | Alta |
+| RNF09 | El acceso a MongoDB debe requerir autenticación con usuario y contraseña configurados durante la instalación. | Alta |
+| RNF10 | El sistema debe registrar en logs las operaciones de escritura sobre incidentes para mantener trazabilidad de auditoría. | Alta |
+
+### Justificación de uso de base de datos NoSQL
+Para resolver el problema planteado, se ha decidido utilizar un motor de bases de datos NoSQL Documental (MongoDB) fundamentado en:
+1. **Estructura variable y semiestructurada:** Las evidencias recolectadas varían ampliamente (trazas de log, hashes, capturas de red, extractos de memoria). Un esquema relacional requeriría tablas excesivamente normalizadas o con campos opcionales nulos, mientras que en un diseño documental las evidencias disímiles se embeben de manera natural.
+2. **Agrupación de datos para consultas rápidas:** Al consultar el detalle de un incidente, usualmente se requiere cargar al instante sus evidencias. El enfoque documental permite recuperar toda la entidad y sus dependencias en una única operación de lectura.
+3. **Escalabilidad ágil:** El negocio de ciberseguridad es dinámico, y frecuentemente aparecerán nuevos vectores de ataque que exigirán registrar campos inéditos. La flexibilidad de esquema de MongoDB facilita estas adiciones.
 
 ### Requisitos de Seguridad y Cumplimiento Normativo
 
@@ -111,8 +127,7 @@ Obligaciones de la Ley 21.719 con impacto directo en este sistema:
 
 ### Alcance y especificaciones
 
-**Descripción**: Desarrollo de una aplicación para la gestión de 
-incidentes de seguridad.
+**Descripción**: Desarrollo de una aplicación web para la gestión de incidentes de seguridad.
 
 **Tecnologías**: Python, Django, MongoDB
 
@@ -212,7 +227,6 @@ de Django mediante un motor `dummy` inhabilita los componentes que
 dependen de esquemas SQL (como las migraciones nativas o el módulo 
 `django.contrib.admin`). Se mitiga mediante el uso directo de los 
 métodos de persistencia provistos por los documentos de MongoEngine.
-<!-- NUEVO -->
 * **Riesgo Normativo:** La Ley 21.719 entra en vigencia el 1 de 
 diciembre de 2026. Si el sistema se extiende a un entorno productivo 
 real, el cliente deberá adecuar las políticas de tratamiento de datos 

@@ -16,3 +16,10 @@ venv/
 local_settings.py
 *.sqlite3
 *.db
+
+# Rubricas, Pautas y Archivos intermedios
+entregable1.md
+Rubrica.md
+*.zip
+comandos.md
+clase_mongodb_joins_y_vistas.md

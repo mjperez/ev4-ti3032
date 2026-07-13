@@ -2,7 +2,7 @@
 {% block content %}
 <h2>Edición de Incidente: {{incidente.titulo|capfirst}}</h2>
 
-<form action="POST">
+<form method="POST">
     {% csrf_token %}
     <label for="titulo">Titulo:</label>
     <input type="text" name="titulo" id="titulo" value="{{incidente.titulo}}" required>
@@ -19,12 +19,11 @@
         {% endfor %}
     </select>
     <label for="fecha">Fecha de Reporte:</label>
-    <input type="datetime-local" name="fecha" id="fecha" value="{{ incidente.fecha_reporte|date:'d-m-Y\TH:i' }}"
-        required>
+    <input type="datetime-local" name="fecha" id="fecha" value="{{ incidente.fecha_reporte|date:'Y-m-d\TH:i' }}" required>
     <label for="activo">Activo:</label>
     <select name="activo" id="activo">
         {% for a in activos %}
-        <option value="{{a.id}}" {% if a==incidente.activo %} selected {% endif %}>{{a.titulo}}</option>
+        <option value="{{a.id}}" {% if a==incidente.activo %} selected {% endif %}>{{a.nombre}} ({{a.ip_address}})</option>
         {% endfor %}
     </select>
     <label for="analista_asignado">Analista Asignado:</label>
@@ -36,6 +35,6 @@
         {% endfor %}
     </select>
     <input type="submit" value="Actualizar Incidente">
-    <a href="">Cancelar</a>
+    <a href="{% url 'detalle_incidente' incidente.id %}">Cancelar</a>
 </form>
 {% endblock %}

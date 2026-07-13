@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Reporte de Cierre: {{incidente.titulo}}</h2>
+
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">Fecha de Emisión</span>
+        <span class="detail-value">{{incidente.reporte_cierre.fecha_emision|date:"Y-m-d H:i"}} UTC</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Emitido por</span>
+        <span class="detail-value">
+            {% if analista %}
+                {{analista.nombre}} ({{analista.rol}})
+            {% else %}
+                ID: {{incidente.reporte_cierre.analista_id}}
+            {% endif %}
+        </span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Tiempo de Resolución</span>
+        <span class="detail-value">{{incidente.reporte_cierre.tiempo_resolucion_horas}}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Estado Actual</span>
+        <span class="detail-value" style="color: red; font-weight: bold;">{{incidente.estado|upper}}</span>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem; border: 1px solid #ccc; padding: 1.5rem; border-radius: 8px;">
+    <h3>Resumen Ejecutivo</h3>
+    <p>{{incidente.reporte_cierre.resumen|linebreaks}}</p>
+    
+    <h3 style="margin-top: 1.5rem;">Conclusiones y Recomendaciones</h3>
+    <p>
+        {% if incidente.reporte_cierre.conclusiones %}
+            {{incidente.reporte_cierre.conclusiones|linebreaks}}
+        {% else %}
+            <i>Sin conclusiones adicionales.</i>
+        {% endif %}
+    </p>
+</div>
+
+<div class="back-link" style="margin-top: 2rem;">
+    <a href="{% url 'detalle_incidente' incidente.id %}" class="btn btn-primary">Volver al Detalle del Incidente</a>
+    <a href="{% url 'lista_incidentes' %}" class="btn btn-secondary">Volver a la Lista</a>
+</div>
+
+{% endblock %}

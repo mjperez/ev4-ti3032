@@ -1,3 +1,40 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<h2>Edición de Analista: {{analista.nombre}}</h2>
+<form method="POST">
+    {% csrf_token %}
+    <label for="nombre">Nombre:</label>
+    <input type="text" name="nombre" id="nombre" value="{{analista.nombre}}" required>
+    
+    <label for="email">Correo:</label>
+    <input type="text" name="email" id="email" value="{{analista.email}}" required>
+    
+    <label for="rol">Rol:</label>
+    <select name="rol" id="rol" required>
+        <option value="" disabled>Seleccione un rol</option>
+        {% for r in roles %}
+        <option value="{{r}}" {% if r == analista.rol %}selected{% endif %}>{{r|capfirst}}</option>
+        {% endfor %}
+    </select>
+    
+    <label for="telefono">Telefono:</label>
+    <input type="text" name="telefono" id="telefono" value="{{analista.telefono}}" required>
+    
+    <label for="horario">Horario:</label>
+    <input type="text" name="horario" id="horario" value="{{analista.horario}}" required>
+    
+    <label for="especialidad">Especialidad:</label>
+    <select name="especialidad" id="especialidad" required>
+        <option value="" disabled>Seleccione una especialidad</option>
+        {% for e in especialidades %}
+        <option value="{{e}}" {% if e == analista.especialidad %}selected{% endif %}>{{e|capfirst}}</option>
+        {% endfor %}
+    </select>
+    
+    <input type="submit" value="Actualizar Analista">
+    <a href="{% url 'detalle_analista' analista.id %}">Cancelar</a>
+</form>
+<br>
+
 {% endblock %}

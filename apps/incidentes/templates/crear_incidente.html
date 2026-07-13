@@ -4,7 +4,7 @@
 <h2>Ingreso de Incidentes</h2>
 <form action="{% url 'crear_incidente' %}" method="post">
     {% csrf_token %}
-    <label for="titulo">Detalle del Incidente:</label>
+    <label for="titulo">Título del Incidente:</label>
     <input type="text" name="titulo" id="titulo" required>
     <label for="severidad">Severidad:</label>
     <select name="severidad" id="severidad" required>
@@ -16,18 +16,18 @@
     <label for="estado">Estado:</label>
     <select name="estado" id="estado" required>
         <option value="" disabled selected>Seleccione un estado</option>
-        {% for e in estados%}
+        {% for e in estados %}
         <option value="{{e}}">{{e|capfirst}}</option>
-        {% endfor%}
+        {% endfor %}
     </select>
     <label for="fecha">Fecha de Reporte:</label>
     <input type="datetime-local" name="fecha" id="fecha" required>
     <label for="activo">Activo:</label>
     <select name="activo" id="activo" required>
         <option value="" disabled selected>Seleccione un activo</option>
-        {% for a in activos%}
-        <option value="{{a.id}}">{{a.titulo}}</option>
-        {% endfor%}
+        {% for a in activos %}
+        <option value="{{a.id}}">{{a.nombre}} ({{a.ip_address}})</option>
+        {% endfor %}
     </select>
     <label for="analista_asignado">Analista Asignado:</label>
     <select name="analista_asignado" id="analista_asignado">

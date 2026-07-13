@@ -5,7 +5,14 @@
 
 <div class="button-group">
     <a href="{%url 'editar_incidente' incidente.id%}" class="btn btn-primary">Editar Incidente</a>
-    <a href="{%url 'eliminar_incidente' incidente.id%}" class="btn btn-danger">Eliminar Incidente</a>
+    {% if incidente.estado != 'cerrado' %}
+        <a href="{%url 'agregar_evidencia' incidente.id%}" class="btn btn-secondary">Agregar Evidencia</a>
+        <a href="{%url 'agregar_accion_incidente' incidente.id%}" class="btn btn-secondary">Registrar Acción</a>
+        <a href="{%url 'cerrar_incidente_view' incidente.id%}" class="btn btn-danger">Cerrar Incidente</a>
+    {% else %}
+        <a href="{%url 'ver_reporte_cierre' incidente.id%}" class="btn btn-success">Ver Reporte de Cierre</a>
+    {% endif %}
+    <a href="{%url 'eliminar_incidente' incidente.id%}" class="btn btn-danger" style="margin-left: auto;">Eliminar Incidente</a>
 </div>
 
 <div class="detail-grid">
@@ -45,12 +52,32 @@
 <ul>
     {% for evidencia in incidente.evidencias %}
     <li>
-        <strong>[{{evidencia.tipo|upper}}]</strong> {{evidencia.descripcion}}
+        <strong>[{{evidencia.tipo|upper}}]</strong> {{evidencia.descripcion}} <br>
+        {% if evidencia.valor %}
+        <small style="font-family: monospace; color: gray;">{{ evidencia.valor }}</small>
+        {% endif %}
     </li>
     {% endfor %}
 </ul>
 {% else %}
 <p style="color: var(--text-muted); margin-bottom: 2rem;">No hay evidencias adjuntas a este incidente.</p>
+{% endif %}
+
+<hr style="margin: 2rem 0;">
+
+<h3>Acciones Registradas (Análisis Forense)</h3>
+{% if incidente.acciones_embebidas %}
+<ul style="list-style-type: none; padding-left: 0;">
+    {% for accion in incidente.acciones_embebidas %}
+    <li style="margin-bottom: 1rem; border-left: 3px solid #007bff; padding-left: 1rem;">
+        <strong>{{accion.titulo}}</strong> <span style="color: gray;">({{accion.fecha|date:"Y-m-d H:i"}})</span><br>
+        <span class="badge badge-info">[{{accion.tipo|upper}}]</span><br>
+        {{accion.descripcion}}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p style="color: var(--text-muted); margin-bottom: 2rem;">No hay acciones registradas para este incidente aún.</p>
 {% endif %}
 
 <div class="back-link">

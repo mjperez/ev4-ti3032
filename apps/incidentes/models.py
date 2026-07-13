@@ -1,27 +1,4 @@
-"""
-Modelos de datos MongoEngine para el sistema de gestión de incidentes
-de seguridad informática.
-
-Utiliza MongoEngine como ODM (Object-Document Mapper) para interactuar
-con MongoDB. Los modelos se definen en orden de dependencia:
-    1. Evidencia (EmbeddedDocument) — sin colección propia
-    2. Analista (Document) — colección 'analistas'
-    3. Activo (Document) — colección 'activos'
-    4. Incidente (Document) — colección 'incidentes'
-    5. Accion (Document) — colección 'acciones'
-    6. Reporte (Document) — colección 'reportes'
-
-Decisiones de diseño:
-    - Evidencia se embebe dentro de Incidente (ListField) porque siempre
-      se accede en el contexto del incidente y no requiere consultas
-      independientes. Esto reduce la cantidad de queries necesarias.
-    - Accion y Reporte referencian a Incidente (ReferenceField) porque
-      pueden consultarse de forma independiente y potencialmente
-      requerirían paginación o filtrado propio.
-"""
-
 from datetime import datetime, timezone
-
 from mongoengine import (
     DateTimeField,
     Document,
@@ -33,7 +10,7 @@ from mongoengine import (
     StringField,
 )
 
-ROLES_ANALISTA = ["junior", "senior", "lead"]
+ROLES_ANALISTA = ["junior", "senior", "lead", "product owner"]
 """Roles válidos para un analista de seguridad."""
 
 ESPECIALIDADES_ANALISTA = ["forensic","malware","network","cloud","endpoint","incident response"]
@@ -42,44 +19,29 @@ ESPECIALIDADES_ANALISTA = ["forensic","malware","network","cloud","endpoint","in
 TIPOS_ACTIVO = ["servidor", "endpoint", "red"]
 """Tipos de activos informáticos registrables."""
 
-TIPOS_EVIDENCIA = ["log", "hash", "captura"]
+TIPOS_EVIDENCIA = ["log", "hash", "captura", "otro"]
 """Tipos de evidencia asociable a un incidente."""
 
 NIVELES_SEVERIDAD = ["baja", "media", "alta", "critica"]
 """Niveles de severidad de un incidente."""
 
-ESTADOS_INCIDENTE = ["abierto", "en investigacion", "cerrado"]
+ESTADOS_INCIDENTE = ["abierto", "en investigacion", "cerrado", "falso positivo"]
 """Estados del ciclo de vida de un incidente."""
 
 TIPOS_ACCION = ["mitigacion", "analisis", "escalamiento"]
 """Tipos de acción ejecutable sobre un incidente."""
 
-
-# ---------------------------------------------------------------------------
-# 1. EmbeddedDocument: Evidencia
-# ---------------------------------------------------------------------------
-
 class Evidencia(EmbeddedDocument):
     """
     Evidencia asociada a un incidente de seguridad.
 
-    Se almacena como documento embebido dentro de la lista
-    ``Incidente.evidencias``. No posee colección propia en MongoDB.
-
-    Attributes:
+    Atributos:
         tipo: Categoría de la evidencia (log, hash o captura).
         descripcion: Descripción textual de la evidencia.
         valor: Contenido o valor de la evidencia (ej: hash SHA-256,
                fragmento de log, nombre de archivo de captura).
-
-    Example:
-        >>> evidencia = Evidencia(
-        ...     tipo="hash",
-        ...     descripcion="Hash SHA-256 del archivo sospechoso",
-        ...     valor="a1b2c3d4e5f6..."
-        ... )
     """
-
+    
     tipo = StringField(
         choices=TIPOS_EVIDENCIA,
         required=True,
@@ -97,19 +59,12 @@ class Evidencia(EmbeddedDocument):
     def __str__(self):
         return f"[{self.tipo}] {self.descripcion[:60]}"
 
-
-# ---------------------------------------------------------------------------
-# 2. Document: Analista
-# ---------------------------------------------------------------------------
-
 class Analista(Document):
     """
-    Analista de seguridad registrado en el sistema.
-
-    Representa a un profesional responsable de investigar incidentes,
+    Analista de seguridad registrado en el sistema, responsable de investigar incidentes,
     ejecutar acciones de mitigación y emitir reportes de cierre.
 
-    Attributes:
+    Atributos:
         nombre: Nombre completo del analista.
         email: Correo electrónico institucional (único).
         rol: Nivel jerárquico del analista (junior, senior o lead).
@@ -120,17 +75,6 @@ class Analista(Document):
     Indexes:
         - ``email`` (único): evita duplicados y optimiza búsquedas.
         - ``rol``: optimiza filtrado por nivel jerárquico.
-
-    Example:
-        >>> analista = Analista(
-        ...     nombre="María López",
-        ...     email="mlopez@empresa.cl",
-        ...     rol="senior",
-        ...     telefono="+123456789",
-        ...     horario="8:00 - 17:00",
-        ...     especialidad="malware"
-        ... )
-        >>> analista.save()
     """
 
     nombre = StringField(
@@ -141,7 +85,7 @@ class Analista(Document):
     email = EmailField(
         required=True,
         unique=True,
-        help_text="Correo electrónico institucional (debe ser único).",
+        help_text="Correo electrónico del analista (debe ser único).",
     )
     rol = StringField(
         choices=ROLES_ANALISTA,
@@ -177,18 +121,12 @@ class Analista(Document):
         return f"{self.nombre} ({self.rol})"
 
 
-# ---------------------------------------------------------------------------
-# 3. Document: Activo
-# ---------------------------------------------------------------------------
-
 class Activo(Document):
     """
-    Activo informático registrado en el inventario del cliente.
-
-    Representa un sistema, dispositivo o segmento de red que puede
+    Activo informático registrado en el inventario del cliente. Representa un sistema, dispositivo o segmento de red que puede
     verse afectado por un incidente de seguridad.
 
-    Attributes:
+    Atributos:
         nombre: Nombre identificador del activo (ej: 'SRV-WEB-01').
         tipo: Categoría del activo (servidor, endpoint o red).
         ip_address: Dirección IP asociada al activo (opcional).
@@ -197,15 +135,6 @@ class Activo(Document):
     Indexes:
         - ``tipo``: optimiza filtrado por categoría de activo.
         - ``nombre``: optimiza búsquedas por nombre.
-
-    Example:
-        >>> activo = Activo(
-        ...     nombre="SRV-WEB-01",
-        ...     tipo="servidor",
-        ...     ip_address="192.168.1.10",
-        ...     descripcion="Servidor web de producción"
-        ... )
-        >>> activo.save()
     """
 
     nombre = StringField(
@@ -241,20 +170,37 @@ class Activo(Document):
         return f"{self.nombre}{ip_info}"
 
 
-# ---------------------------------------------------------------------------
-# 4. Document: Incidente
-# ---------------------------------------------------------------------------
+class AccionEmbebida(EmbeddedDocument):
+    """
+    Acción embebida dentro de un incidente.
+    """
+    titulo = StringField(required=True, help_text="Titulo de la acción.")
+    descripcion = StringField(required=True, max_length=1000, help_text="Descripción detallada de la acción realizada.")
+    tipo = StringField(choices=TIPOS_ACCION, required=True, help_text="Categoría: mitigacion, analisis o escalamiento.")
+    fecha = DateTimeField(default=lambda: datetime.now(timezone.utc), help_text="Fecha y hora en que se ejecutó la acción (UTC).")
+    analista_id = StringField(required=True, help_text="ID del analista que ejecutó la acción (para auditoría).")
+
+    def __str__(self):
+        return f"[{self.tipo}] {self.descripcion[:60]}"
+
+class ReporteCierre(EmbeddedDocument):
+    """
+    Reporte de cierre embebido indisolublemente asociado al incidente.
+    """
+    resumen = StringField(required=True, max_length=2000, help_text="Resumen ejecutivo de los hallazgos del incidente.")
+    conclusiones = StringField(max_length=2000, help_text="Conclusiones y recomendaciones finales.")
+    fecha_emision = DateTimeField(default=lambda: datetime.now(timezone.utc), help_text="Fecha y hora de emisión del reporte (UTC).")
+    tiempo_resolucion_horas = StringField(help_text="Tiempo total de resolución calculado al momento del cierre.")
+    analista_id = StringField(required=True, help_text="ID del analista que emite el reporte.")
+
+    def __str__(self):
+        return f"Reporte del {self.fecha_emision}"
 
 class Incidente(Document):
     """
     Incidente de seguridad informática.
 
-    Documento principal del sistema. Cada incidente se asocia a un activo
-    afectado y a un analista responsable. Las evidencias se almacenan como
-    documentos embebidos (ListField de EmbeddedDocumentField) para
-    consolidar toda la información en un único punto de acceso.
-
-    Attributes:
+    Atributos:
         titulo: Título descriptivo del incidente.
         severidad: Nivel de severidad (baja, media, alta, critica).
         estado: Estado del ciclo de vida (abierto, en_investigacion, cerrado).
@@ -263,24 +209,10 @@ class Incidente(Document):
         analista_asignado: Referencia al analista responsable.
         evidencias: Lista de evidencias embebidas.
 
-    Indexes:
+    Indices:
         - ``severidad``: optimiza filtrado por nivel de severidad.
         - ``estado``: optimiza filtrado por estado del incidente.
         - ``fecha_reporte`` (desc): optimiza ordenamiento cronológico.
-
-    Example:
-        >>> incidente = Incidente(
-        ...     titulo="Acceso no autorizado a SRV-WEB-01",
-        ...     severidad="alta",
-        ...     estado="abierto",
-        ...     activo=activo_obj,
-        ...     analista_asignado=analista_obj,
-        ...     evidencias=[
-        ...         Evidencia(tipo="log", descripcion="Log de acceso SSH",
-        ...                   valor="Failed password for root from 10.0.0.5")
-        ...     ]
-        ... )
-        >>> incidente.save()
     """
 
     titulo = StringField(
@@ -316,6 +248,14 @@ class Incidente(Document):
         EmbeddedDocumentField(Evidencia),
         help_text="Lista de evidencias embebidas en el incidente.",
     )
+    acciones_embebidas = ListField(
+        EmbeddedDocumentField(AccionEmbebida),
+        help_text="Lista de acciones embebidas en el incidente.",
+    )
+    reporte_cierre = EmbeddedDocumentField(
+        ReporteCierre,
+        help_text="Reporte de cierre embebido asociado al incidente.",
+    )
 
     meta = {
         "collection": "incidentes",
@@ -330,147 +270,25 @@ class Incidente(Document):
     def __str__(self):
         return f"[{self.severidad.upper()}] {self.titulo}"
 
-
-# ---------------------------------------------------------------------------
-# 5. Document: Accion
-# ---------------------------------------------------------------------------
-
-class Accion(Document):
-    """
-    Acción tomada sobre un incidente de seguridad.
-
-    Registra las intervenciones realizadas por los analistas durante
-    el ciclo de vida de un incidente (mitigación, análisis, escalamiento).
-
-    Attributes:
-        incidente: Referencia al incidente sobre el que se actúa.
-        analista: Referencia al analista que ejecuta la acción.
-        descripcion: Descripción detallada de la acción realizada.
-        tipo: Categoría de la acción (mitigacion, analisis, escalamiento).
-        fecha: Fecha y hora de la acción (default: ahora UTC).
-
-    Indexes:
-        - ``incidente``: optimiza listado de acciones por incidente.
-        - ``fecha`` (desc): optimiza ordenamiento cronológico.
-
-    Example:
-        >>> accion = Accion(
-        ...     incidente=incidente_obj,
-        ...     analista=analista_obj,
-        ...     descripcion="Se bloqueó la IP de origen en el firewall",
-        ...     tipo="mitigacion"
-        ... )
-        >>> accion.save()
-    """
-
-    incidente = ReferenceField(
-        Incidente,
-        required=True,
-        help_text="Incidente sobre el cual se ejecutó la acción.",
-    )
-    analista = ReferenceField(
-        Analista,
-        required=True,
-        help_text="Analista que ejecutó la acción.",
-    )
-    titulo = StringField(
-        required=True,
-        help_text="Titulo de la acción.",
-    )
-    descripcion = StringField(
-        required=True,
-        max_length=1000,
-        help_text="Descripción detallada de la acción realizada.",
-    )
-    tipo = StringField(
-        choices=TIPOS_ACCION,
-        required=True,
-        help_text="Categoría: mitigacion, analisis o escalamiento.",
-    )
-    fecha = DateTimeField(
-        default=lambda: datetime.now(timezone.utc),
-        help_text="Fecha y hora en que se ejecutó la acción (UTC).",
-    )
-
-    meta = {
-        "collection": "acciones",
-        "indexes": [
-            "incidente",
-            "-fecha",
-        ],
-        "ordering": ["-fecha"],
-    }
-
-    def __str__(self):
-        return f"[{self.tipo}] {self.descripcion[:60]}"
+    def cerrar_incidente(self, resumen, conclusiones=None, analista_id=None):
+        """
+        Cierra el incidente y genera automáticamente el reporte de cierre embebido.
+        Calcula el tiempo de resolución en horas.
+        """
+        self.estado = "cerrado"
+        tiempo_resolucion = ""
+        if self.fecha_reporte:
+            delta = datetime.now(timezone.utc) - self.fecha_reporte
+            horas = delta.total_seconds() / 3600
+            tiempo_resolucion = f"{horas:.2f} horas"
+            
+        self.reporte_cierre = ReporteCierre(
+            resumen=resumen,
+            conclusiones=conclusiones,
+            tiempo_resolucion_horas=tiempo_resolucion,
+            analista_id=str(analista_id) if analista_id else "Desconocido"
+        )
+        self.save()
 
 
-# ---------------------------------------------------------------------------
-# 6. Document: Reporte
-# ---------------------------------------------------------------------------
-
-class Reporte(Document):
-    """
-    Reporte de cierre de un incidente de seguridad.
-
-    Se genera una vez que un incidente se resuelve y pasa al estado
-    'cerrado'. Consolida el resumen de hallazgos y las conclusiones
-    del análisis realizado.
-
-    Attributes:
-        incidente: Referencia al incidente reportado (único).
-        analista: Referencia al analista que emite el reporte.
-        resumen: Resumen ejecutivo de los hallazgos.
-        conclusiones: Conclusiones y recomendaciones (opcional).
-        fecha_emision: Fecha de emisión del reporte (default: ahora UTC).
-
-    Indexes:
-        - ``incidente`` (único): un incidente solo puede tener un reporte.
-        - ``fecha_emision`` (desc): optimiza ordenamiento cronológico.
-
-    Example:
-        >>> reporte = Reporte(
-        ...     incidente=incidente_cerrado,
-        ...     analista=analista_obj,
-        ...     resumen="Se identificó acceso no autorizado vía SSH...",
-        ...     conclusiones="Se recomienda habilitar MFA en todos los servidores."
-        ... )
-        >>> reporte.save()
-    """
-
-    incidente = ReferenceField(
-        Incidente,
-        required=True,
-        unique=True,
-        help_text="Incidente al que pertenece este reporte de cierre.",
-    )
-    analista = ReferenceField(
-        Analista,
-        required=True,
-        help_text="Analista que emite el reporte.",
-    )
-    resumen = StringField(
-        required=True,
-        max_length=2000,
-        help_text="Resumen ejecutivo de los hallazgos del incidente.",
-    )
-    conclusiones = StringField(
-        max_length=2000,
-        help_text="Conclusiones y recomendaciones finales.",
-    )
-    fecha_emision = DateTimeField(
-        default=lambda: datetime.now(timezone.utc),
-        help_text="Fecha y hora de emisión del reporte (UTC).",
-    )
-
-    meta = {
-        "collection": "reportes",
-        "indexes": [
-            {"fields": ["incidente"], "unique": True},
-            "-fecha_emision",
-        ],
-        "ordering": ["-fecha_emision"],
-    }
-
-    def __str__(self):
-        return f"Reporte: {self.incidente.titulo}"
+

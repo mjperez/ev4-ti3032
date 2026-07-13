@@ -1,3 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<h2>Edición de Activo: {{activo.nombre}}</h2>
+<form method="POST">
+    {% csrf_token %}
+    <label for="nombre">Detalle del Activo:</label>
+    <input type="text" name="nombre" id="nombre" value="{{activo.nombre}}" required>
+    
+    <label for="tipo">Tipo:</label>
+    <select name="tipo" id="tipo" required>
+        <option value="" disabled>Seleccione un tipo</option>
+        {% for tipo in tipos_activo %}
+        <option value="{{tipo}}" {% if tipo == activo.tipo %}selected{% endif %}>{{tipo|capfirst}}</option>
+        {% endfor %}
+    </select>
+    
+    <label for="ip_address">Direccion IP:</label>
+    <input type="text" name="ip_address" id="ip_address" value="{{activo.ip_address|default:''}}">
+    
+    <label for="descripcion">Descripción:</label>
+    <textarea name="descripcion" id="descripcion" rows="4">{{activo.descripcion|default:''}}</textarea>
+    
+    <input type="submit" value="Actualizar Activo">
+    <a href="{% url 'detalle_activo' activo.id %}">Cancelar</a>
+</form>
+
 {% endblock %}

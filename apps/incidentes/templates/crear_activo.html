@@ -9,12 +9,14 @@
     <label for="tipo">Tipo:</label>
     <select name="tipo" id="tipo" required>
         <option value="" disabled selected>Seleccione un tipo</option>
-        {% for tipo in TIPOS_ACTIVO %}
-        <option value="{{tipo}}">{{tipo}}</option>
+        {% for tipo in tipos_activo %}
+        <option value="{{tipo}}">{{tipo|capfirst}}</option>
         {% endfor %}
     </select>
     <label for="ip_address">Direccion IP:</label>
-    <input type="text" name="ip_address" id="ip_address" required>
+    <input type="text" name="ip_address" id="ip_address">
+    <label for="descripcion">Descripción:</label>
+    <textarea name="descripcion" id="descripcion" rows="4"></textarea>
     <input type="submit" value="Registrar Activo">
     <a href="{% url 'lista_activos' %}">Cancelar</a>
 </form>

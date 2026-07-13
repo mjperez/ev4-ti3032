@@ -10,6 +10,10 @@ urlpatterns = [
     path("crear-incidente/",views.crear_incidente,name="crear_incidente"),
     path("editar-incidente/<str:incidente_id>",views.editar_incidente,name="editar_incidente"),
     path("eliminar-incidente/<str:incidente_id>",views.eliminar_incidente,name="eliminar_incidente"),
+    path("incidentes/<str:incidente_id>/evidencia",views.agregar_evidencia,name="agregar_evidencia"),
+    path("incidentes/<str:incidente_id>/accion",views.agregar_accion_incidente,name="agregar_accion_incidente"),
+    path("incidentes/<str:incidente_id>/cerrar",views.cerrar_incidente_view,name="cerrar_incidente_view"),
+    path("incidentes/<str:incidente_id>/reporte",views.ver_reporte_cierre,name="ver_reporte_cierre"),
     
     # Activos
     path("activos/",views.lista_activos,name="lista_activos"),
@@ -24,11 +28,5 @@ urlpatterns = [
     path("crear-analista/",views.crear_analista,name="crear_analista"),
     path("editar-analista/<str:analista_id>",views.editar_analista,name="editar_analista"),
     path("eliminar-analista/<str:analista_id>",views.eliminar_analista,name="eliminar_analista"),
-    
-    # Acciones
-    path("acciones/",views.lista_acciones,name="lista_acciones"),
-    path("acciones/<str:accion_id>",views.detalle_accion,name="detalle_accion"),
-    path("crear-accion/",views.crear_accion,name="crear_accion"),
-    path("editar-accion/<str:accion_id>",views.editar_accion,name="editar_accion"),
-    path("eliminar-accion/<str:accion_id>",views.eliminar_accion,name="eliminar_accion")
 ]
+    
