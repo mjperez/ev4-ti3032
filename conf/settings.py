@@ -69,14 +69,18 @@ MONGO_SETTINGS = {
     "PASSWORD": os.environ.get("MONGO_PASS", ""),
 }
 
-mongoengine.connect(
-    db=MONGO_SETTINGS["DB_NAME"],
-    host=MONGO_SETTINGS["HOST"],
-    port=MONGO_SETTINGS["PORT"],
-    username=MONGO_SETTINGS["USER"],
-    password=MONGO_SETTINGS["PASSWORD"],
-    authentication_source=MONGO_SETTINGS["DB_NAME"],
-)
+mongo_kwargs = {
+    "db": MONGO_SETTINGS["DB_NAME"],
+    "host": MONGO_SETTINGS["HOST"],
+    "port": MONGO_SETTINGS["PORT"],
+}
+
+if MONGO_SETTINGS["USER"]:
+    mongo_kwargs["username"] = MONGO_SETTINGS["USER"]
+    mongo_kwargs["password"] = MONGO_SETTINGS["PASSWORD"]
+    mongo_kwargs["authentication_source"] = MONGO_SETTINGS["DB_NAME"]
+
+mongoengine.connect(**mongo_kwargs)
 
 AUTH_PASSWORD_VALIDATORS = [
     {

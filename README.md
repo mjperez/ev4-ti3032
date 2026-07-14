@@ -1,198 +1,64 @@
-# Incident Tracker
+# Unidad 4: Bases de Datos No Estructuradas (TI3032)
 
-**Proyecto:** Security Incident Tracker  
-**Tecnologías:** Django 6.0.6 · MongoEngine 0.29.3 · MongoDB  
-
----
-
-## 1. Descripción General
-
-Sistema de registro y seguimiento de incidentes de seguridad informática. Permite registrar activos afectados, asignar analistas, documentar evidencias y acciones de mitigación, y emitir reportes de cierre.
+**Integrantes:** Maria Jesus Perez
+**Docente:** Mario Yáñez Urrutia
+**Sección:** D-IINF-N3-P2-C2(F)/D
 
 ---
 
-## 2. Requerimientos Funcionales
+## 1. Descripción del Módulo Básico
 
-### 2.1 Analistas
+Este repositorio contiene el Módulo de Software Básico y el script de diseño de base de datos para la solución **Security Incident Tracker**.
 
-- RF01: Registrar un analista con nombre, email y rol.
-- RF02: Listar todos los analistas registrados.
-
-### 2.2 Activos
-
-- RF03: Registrar un activo (sistema o dispositivo afectado) con nombre, tipo, dirección IP y descripción.
-- RF04: Listar todos los activos registrados.
-
-### 2.3 Incidentes
-
-- RF05: Crear un incidente asociado a un activo y un analista responsable.
-- RF06: Agregar evidencias a un incidente (almacenadas como documentos embebidos).
-- RF07: Listar incidentes con posibilidad de filtrar por severidad o estado.
-- RF08: Ver el detalle de un incidente, incluyendo sus evidencias embebidas.
-
-### 2.4 Acciones
-
-- RF09: Registrar una acción tomada sobre un incidente, indicando tipo y analista responsable.
-- RF10: Listar las acciones asociadas a un incidente específico.
-
-### 2.5 Reportes
-
-- RF11: Generar un reporte de cierre para un incidente cerrado.
-- RF12: Consultar el reporte asociado a un incidente.
+El módulo fue desarrollado en **Django 6.0.6** utilizando **MongoDB** como motor de base de datos documental, y **MongoEngine** como Object-Document Mapper (ODM). El sistema implementa un CRUD básico que demuestra la viabilidad técnica para gestionar activos, analistas e incidentes de seguridad, junto con sus respectivas evidencias embebidas.
 
 ---
 
-## 3. Requerimientos No Funcionales
+## 2. Justificación del Modelo de Datos
 
-- RNF01: La base de datos debe ser MongoDB, ejecutándose localmente.
-- RNF02: El acceso a la base de datos debe realizarse exclusivamente a través de MongoEngine como ODM.
-- RNF03: El framework backend debe ser Django 6.0.6.
-- RNF04: Las vistas serán function-based views con templates HTML simples.
-- RNF05: No se requiere sistema de autenticación.
-- RNF06: El proyecto debe incluir un script de datos de prueba ejecutable desde la shell de Django.
+Para definir la estructura de la base de datos se aplicó la **metodología de las 4 preguntas** (Independencia, Volumen, Consulta, Reutilización), obteniendo el siguiente diseño:
 
----
+### 2.1 Entidades modeladas como **Colecciones**
 
-## 4. Schema de Base de Datos
+1. **`analistas`**:
+   - **Independencia:** Sí. Existen en la organización independientemente de si hay incidentes o no.
+   - **Volumen:** Bajo/Medio (equipo de consultores).
+   - **Consulta:** Se listan independientemente para asignar responsables.
+   - **Reutilización:** Alta. Un analista se relaciona con cientos de incidentes y acciones distintas.
 
-### 4.1 Colección `analistas`
+2. **`activos`**:
+   - **Independencia:** Sí. Forman parte del inventario permanente del cliente.
+   - **Volumen:** Medio (crece con el parque informático del cliente).
+   - **Consulta:** Se busca y lista independientemente en inventarios.
+   - **Reutilización:** Alta. Un activo puede sufrir múltiples incidentes a lo largo del tiempo.
 
-|   Campo  | Tipo     | Restricciones                          |
-|----------|----------|----------------------------------------|
-| `_id`    | ObjectId | Generado automáticamente               |
-| `nombre` | String   | Requerido                              |
-| `email`  | String   | Requerido                              |
-| `rol`    | String   | Choices: `junior`, `senior`, `lead`    |
+3. **`incidentes`**:
+   - **Independencia:** Sí. Es el documento central y transaccional del negocio.
+   - **Volumen:** Alto (crece constantemente).
+   - **Consulta:** Se listan en el dashboard principal (filtrados por fecha o severidad).
+   - **Reutilización:** Actúa como contenedor principal.
 
-```python
-class Analista(Document):
-    nombre = StringField(required=True)
-    email  = EmailField(required=True)
-    rol    = StringField(choices=["junior", "senior", "lead"])
+### 2.2 Entidades modeladas como **Subdocumentos Embebidos**
 
-    meta = {"collection": "analistas"}
-```
-
----
-
-### 4.2 Colección `activos`
-
-| Campo         | Tipo     | Restricciones                                    |
-|---------------|----------|--------------------------------------------------|
-| `_id`         | ObjectId | Generado automáticamente                         |
-| `nombre`      | String   | Requerido                                        |
-| `tipo`        | String   | Choices: `servidor`, `endpoint`, `red`           |
-| `ip_address`  | String   | Opcional                                         |
-| `descripcion` | String   | Opcional                                         |
-
-```python
-class Activo(Document):
-    nombre      = StringField(required=True)
-    tipo        = StringField(choices=["servidor", "endpoint", "red"])
-    ip_address  = StringField()
-    descripcion = StringField()
-
-    meta = {"collection": "activos"}
-```
+1. **`evidencias`**, **`acciones`** y **`reportes`** (dentro de `incidentes`):
+   - **Independencia:** Baja. Una evidencia o una acción de mitigación no tiene sentido ni valor de negocio si no está asociada al incidente que la originó.
+   - **Volumen:** Acotado. Un incidente tiene un número limitado de evidencias o acciones (array finito, sin riesgo de superar los 16MB por documento).
+   - **Consulta:** Siempre se leen en conjunto con el incidente. Al abrir el detalle del incidente, se requiere ver qué pasó (acciones) y qué pruebas hay (evidencias). Embeber evita costosos `$lookup` (JOINs).
+   - **Reutilización:** Nula. Una captura forense específica o un reporte de cierre pertenece *única y exclusivamente* a ese incidente.
 
 ---
 
-### 4.3 EmbeddedDocument `evidencias` (embebido en `incidentes`)
+## 3. Estructura y Esquemas de Base de Datos
 
-> No es una colección independiente. Se almacena como lista dentro de cada documento `incidente`.
+El diseño con validaciones `$jsonSchema` se encuentra en el archivo:
+📄 [`script_mongodb.js`](script_mongodb.js)
 
-| Campo         | Tipo   | Restricciones                          |
-|---------------|--------|----------------------------------------|
-| `tipo`        | String | Choices: `log`, `hash`, `captura`      |
-| `descripcion` | String | Requerido                              |
-| `valor`       | String | El contenido de la evidencia           |
+### Índices Justificados:
+- `analistas` (`{ email: 1 }`): Único, garantiza integridad y agiliza login/búsquedas de usuarios.
+- `activos` (`{ tipo: 1 }`): Optimiza filtros estadísticos del inventario.
+- `incidentes` (`{ fecha_reporte: -1 }`): Crítico para el rendimiento del dashboard, que por defecto siempre lista los incidentes más recientes primero.
 
-```python
-class Evidencia(EmbeddedDocument):
-    tipo        = StringField(choices=["log", "hash", "captura"])
-    descripcion = StringField(required=True)
-    valor       = StringField()
-```
-
----
-
-### 4.4 Colección `incidentes`
-
-| Campo               | Tipo             | Restricciones                                              |
-|---------------------|------------------|------------------------------------------------------------|
-| `_id`               | ObjectId         | Generado automáticamente                                   |
-| `titulo`            | String           | Requerido                                                  |
-| `severidad`         | String           | Choices: `baja`, `media`, `alta`, `critica`                |
-| `estado`            | String           | Choices: `abierto`, `en_investigacion`, `cerrado`          |
-| `fecha_reporte`     | DateTime         | Default: fecha actual                                      |
-| `activo`            | ReferenceField   | Referencia a `activos`                                     |
-| `analista_asignado` | ReferenceField   | Referencia a `analistas`                                   |
-| `evidencias`        | ListField        | Lista de `Evidencia` (EmbeddedDocument)                    |
-
-```python
-class Incidente(Document):
-    titulo            = StringField(required=True)
-    severidad         = StringField(choices=["baja", "media", "alta", "critica"])
-    estado            = StringField(choices=["abierto", "en_investigacion", "cerrado"])
-    fecha_reporte     = DateTimeField(default=datetime.utcnow)
-    activo            = ReferenceField(Activo)
-    analista_asignado = ReferenceField(Analista)
-    evidencias        = ListField(EmbeddedDocumentField(Evidencia))
-
-    meta = {"collection": "incidentes"}
-```
-
----
-
-### 4.5 Colección `acciones`
-
-| Campo         | Tipo           | Restricciones                                        |
-|---------------|----------------|------------------------------------------------------|
-| `_id`         | ObjectId       | Generado automáticamente                             |
-| `incidente`   | ReferenceField | Referencia a `incidentes`, requerido                 |
-| `analista`    | ReferenceField | Referencia a `analistas`                             |
-| `descripcion` | String         | Requerido                                            |
-| `tipo`        | String         | Choices: `mitigacion`, `analisis`, `escalamiento`    |
-| `fecha`       | DateTime       | Default: fecha actual                                |
-
-```python
-class Accion(Document):
-    incidente   = ReferenceField(Incidente, required=True)
-    analista    = ReferenceField(Analista)
-    descripcion = StringField(required=True)
-    tipo        = StringField(choices=["mitigacion", "analisis", "escalamiento"])
-    fecha       = DateTimeField(default=datetime.utcnow)
-
-    meta = {"collection": "acciones"}
-```
-
----
-
-### 4.6 Colección `reportes`
-
-| Campo          | Tipo           | Restricciones                        |
-|----------------|----------------|--------------------------------------|
-| `_id`          | ObjectId       | Generado automáticamente             |
-| `incidente`    | ReferenceField | Referencia a `incidentes`, requerido |
-| `analista`     | ReferenceField | Referencia a `analistas`             |
-| `resumen`      | String         | Requerido                            |
-| `conclusiones` | String         | Opcional                             |
-| `fecha_emision`| DateTime       | Default: fecha actual                |
-
-```python
-class Reporte(Document):
-    incidente    = ReferenceField(Incidente, required=True)
-    analista     = ReferenceField(Analista)
-    resumen      = StringField(required=True)
-    conclusiones = StringField()
-    fecha_emision = DateTimeField(default=datetime.utcnow)
-
-    meta = {"collection": "reportes"}
-```
-
----
-
-## 5. Diagrama de Relaciones
+### Diagrama de Relaciones Lógico
 
 ```mermaid
 erDiagram
@@ -202,68 +68,77 @@ erDiagram
         string email
         string rol
     }
-
     activos {
         ObjectId _id
         string nombre
         string tipo
-        string ip_address
-        string descripcion
     }
-
-    evidencias {
-        string tipo
-        string descripcion
-        string valor
-    }
-
     incidentes {
         ObjectId _id
         string titulo
         string severidad
-        string estado
         datetime fecha_reporte
-        ObjectId activo
-        ObjectId analista_asignado
-        list evidencias
+        list evidencias_embebidas
+        list acciones_embebidas
     }
-
-    acciones {
-        ObjectId _id
-        ObjectId incidente
-        ObjectId analista
-        string descripcion
-        string tipo
-        datetime fecha
-    }
-
-    reportes {
-        ObjectId _id
-        ObjectId incidente
-        ObjectId analista
-        string resumen
-        string conclusiones
-        datetime fecha_emision
-    }
-
-    incidentes ||--o{ evidencias : "embedded (ListField)"
-    incidentes }o--|| activos : "ReferenceField"
-    incidentes }o--|| analistas : "ReferenceField (analista_asignado)"
-    acciones }o--|| incidentes : "ReferenceField"
-    acciones }o--|| analistas : "ReferenceField"
-    reportes }o--|| incidentes : "ReferenceField"
-    reportes }o--|| analistas : "ReferenceField"
+    incidentes }o--|| activos : "Referencia (Activo afectado)"
+    incidentes }o--|| analistas : "Referencia (Analista asignado)"
 ```
 
 ---
 
-## 6. Features MongoEngine demostradas
+## 4. Instrucciones
 
-| Feature                     | Dónde se usa                              |
-|-----------------------------|-------------------------------------------|
-| `Document`                  | Todas las colecciones principales         |
-| `EmbeddedDocument`          | `Evidencia` dentro de `Incidente`         |
-| `ReferenceField`            | Relaciones entre colecciones              |
-| `ListField`                 | `evidencias` en `Incidente`               |
-| `choices` en `StringField`  | Roles, severidades, estados, tipos        |
-| `DateTimeField` con default | `fecha_reporte`, `fecha`, `fecha_emision` |
+Para ejecutar el módulo localmente, siga estos pasos:
+
+### 4.1 Prerrequisitos
+- Python 3.12+
+- MongoDB Community Server (o contenedor Docker) ejecutándose en `localhost:27017` sin autenticación obligatoria.
+
+### 4.2 Configuración del Entorno
+1. Clonar o descomprimir el proyecto.
+2. Crear y activar un entorno virtual:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # En Linux/Mac
+   .venv\Scripts\activate     # En Windows
+   ```
+3. Instalar dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### 4.3 Creación de Colecciones y Poblado de Datos
+
+El proceso consta de dos pasos: primero crear las estructuras con sus reglas, y luego insertar datos de prueba.
+
+**Paso 1: Crear Esquemas e Índices**
+Ejecute el script `script_mongodb.js` en su motor de base de datos para crear las colecciones con validación `$jsonSchema` e índices. Puede hacerlo a través de MongoDB Shell (`mongosh`) desde la raíz del proyecto:
+```bash
+mongosh < script_mongodb.js
+```
+*(Opcionalmente, puede copiar y pegar el contenido del script directamente en MongoDB Compass).*
+
+**Paso 2: Poblar Datos de Prueba (Django / MongoEngine)**
+Una vez creadas las estructuras, ejecute el script en Python que demuestra las operaciones **Create** insertando entidades (Analistas, Activos e Incidentes) de prueba:
+```bash
+python poblar_incidentes.py
+```
+*Si se ejecuta correctamente, verá por consola la confirmación de la creación de los registros en MongoDB.*
+
+### 4.4 Ejecución de la Aplicación Web (Read)
+Para visualizar las operaciones **Read** implementadas en el módulo Django:
+1. Inicie el servidor de desarrollo:
+   ```bash
+   python manage.py runserver
+   ```
+2. Abra su navegador e ingrese a la ruta configurada (generalmente `http://127.0.0.1:8000/` o la ruta de incidentes correspondiente).
+
+---
+
+## 5. Evidencias de Ejecución
+
+> **Importante:** Se adjuntarán capturas de pantalla o un video en este archivo `.zip` (o se pueden insertar las imágenes en la carpeta raíz) demostrando la inserción de datos (`poblar_incidentes.py`) y la visualización de los datos (Read) en el navegador.
+
+* [Insertar captura demostrando la inserción de datos en la terminal o Compass]
+* [Insertar captura demostrando la visualización de incidentes en la interfaz web de Django]

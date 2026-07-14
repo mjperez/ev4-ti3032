@@ -1,6 +1,5 @@
 # poblar_incidentes.py
 import os
-import os
 import django
 
 # Configurar el entorno de Django para poder usar la BD
