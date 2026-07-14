@@ -1,25 +1,12 @@
-# Caches de Python
 *.pyc
 __pycache__/
-
-# Archivos del sistema y editores
-.DS_Store
-.idea/
 .vscode/
-
-# Entornos virtuales
 .venv/
-venv/
-
-# Carpetas y archivos de configuración local
 .env
 local_settings.py
 *.sqlite3
 *.db
 
-# Rubricas, Pautas y Archivos intermedios
-entregable1.md
-Rubrica.md
-*.zip
-comandos.md
-clase_mongodb_joins_y_vistas.md
+entregas/
+.ignore/
+
